@@ -171,7 +171,7 @@ static void qkey_thread_entry(void *params)
 static int qkey_init(void)
 {
     rt_thread_t tid = rt_thread_create(QKEY_THREAD_NAME, qkey_thread_entry, RT_NULL, 
-                                        QLED_THREAD_STACK_SIZE, QLED_THREAD_PRIO, 20);
+                                        QKEY_THREAD_STACK_SIZE, QKEY_THREAD_PRIO, 20);
     rt_thread_startup(tid);
     
     return(RT_EOK);
@@ -206,7 +206,7 @@ int qkey_add(int pin, int level, int evt_set, qkey_evt_hook_t hook)
     
     if (idx < 0)
     {
-        LOG_E("led add fail. led space is full.");
+        LOG_E("key add fail. key space is full.");
         return(-RT_ERROR);
     }
     

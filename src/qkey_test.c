@@ -77,7 +77,7 @@ static void qkey_test(int argc, char **argv)
 
         pin = atoi(argv[2]);
         qkey_remove(pin);
-        rt_kprintf("add remove success.\n");
+        rt_kprintf("remove key success.\n");
         return;
     }
     
