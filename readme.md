@@ -10,14 +10,14 @@
 
 ``` 
 key
-├───inc   						// 头文件目录
-│   └───qkey.h            		// API 接口头文件
-├───src                   		// 源码目录
-│   |   qkey.c            		// 主模块
-│   └───qkey_test.c  			// 测试模块
-│	license  					// 软件包许可证
-│	readme.md					// 软件包使用说明
-└───SConscript					// RT-Thread 默认的构建脚本
+├───inc                         // 头文件目录
+│   └───qkey.h                  // API 接口头文件
+├───src                         // 源码目录
+│   |   qkey.c                  // 主模块
+│   └───qkey_test.c             // 测试模块
+│	license                     // 软件包许可证
+│	readme.md                   // 软件包使用说明
+└───SConscript                  // RT-Thread 默认的构建脚本
 ```
 
 ### 1.2许可证
