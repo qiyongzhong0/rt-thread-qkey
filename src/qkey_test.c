@@ -15,7 +15,7 @@
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-#ifdef QKEY_TEST
+#ifdef QKEY_USING_TEST
 static const char *cmd_info[] = 
 {
     "Usages:\n",

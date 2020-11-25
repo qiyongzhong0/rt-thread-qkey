@@ -77,8 +77,8 @@ typedef void (*qkey_evt_hook_t)(int pin, qkey_evt_t evt);
 
 | 参数宏 | 说明 |
 | ---- | ---- |
-| QKEY_USING_TEST 			| 启用测试功能
-| QKEY_PIN_PULL_EN 			| 启用引脚上下拉功能 
+| QKEY_USING_TEST 			| 使用测试功能
+| QKEY_USING_PULL			| 使用引脚上下拉功能 
 | QKEY_TOTAL 				| 支持的按键总数
 | QKEY_SCAN_PRIOD_MS 		| 按键扫描周期
 | QKEY_THREAD_NAME 			| 按键驱动线程名称

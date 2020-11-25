@@ -12,10 +12,7 @@
 #include <rtconfig.h>
 
 //#define QKEY_USING_TEST
-
-#ifndef QKEY_PIN_PULL_EN
-#define QKEY_PIN_PULL_EN        1
-#endif
+//#define QKEY_USING_PULL
 
 #ifndef QKEY_TOTAL
 #define QKEY_TOTAL              5       //support key maximum total

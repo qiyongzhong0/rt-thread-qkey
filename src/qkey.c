@@ -27,7 +27,7 @@ static qkey_inst_t qkeys[QKEY_TOTAL];
 
 static void qkey_pin_init(int pin, int level)
 {
-#if QKEY_PIN_PULL_EN
+#ifdef QKEY_USING_PULL
     if (level == PIN_LOW)
     {
         rt_pin_mode(pin, PIN_MODE_INPUT_PULLUP);
