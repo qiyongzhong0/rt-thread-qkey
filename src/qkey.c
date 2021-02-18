@@ -50,7 +50,7 @@ static void qkey_datas_init(void)
 {
     memset((void *)qkeys, 0, sizeof(qkeys));
     
-    for(int i; i<QKEY_TOTAL; i++)
+    for(int i = 0; i < QKEY_TOTAL; i++)
     {
         qkeys[i].pin = -1;
     }
