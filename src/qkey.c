@@ -4,6 +4,7 @@
  * Change Logs:
  * Date           Author        Notes
  * 2020-10-14     qiyongzhong   first version
+ * 2021-08-30     qiyongzhong       add key array
  */
 
 #include <qkey.h>
@@ -17,13 +18,25 @@
 
 typedef struct{
     rt_int16_t pin;
-    rt_uint8_t level   :1;
     rt_uint8_t evt_set :7;
+    rt_uint8_t level   :1;
     rt_uint8_t wave;
     qkey_evt_hook_t hook;
 }qkey_inst_t;
 
 static qkey_inst_t qkeys[QKEY_TOTAL];
+
+#ifdef QKEY_USING_ARRAY
+typedef struct{
+    const qkey_array_pins_t *pins;
+    rt_uint8_t waves[QKEY_ARRAY_ROW_TOTAL][QKEY_ARRAY_COL_TOTAL];
+    rt_uint8_t evt_set      :6;
+    rt_uint8_t level        :1;
+    rt_uint8_t scan_level   :1;
+    qkey_evt_hook_t hook;
+}qkey_array_t;
+static qkey_array_t qkey_array = {0};
+#endif
 
 static void qkey_pin_init(int pin, int level)
 {
@@ -157,14 +170,111 @@ static void qkey_scan(void)
     }
 }
 
+#ifdef QKEY_USING_ARRAY
+static void qkey_array_pin_chk(qkey_array_t *hinst, int row, int col)
+{
+    int val = hinst->waves[row][col];
+    int evt_set = hinst->evt_set;
+    int lvl = (rt_pin_read(hinst->pins->row[row]) != PIN_LOW);
+    int evt_pin = QKEY_ARRAY_PIN_FIRST + row * QKEY_ARRAY_COL_TOTAL + col;
+
+    val <<= 1;
+    if (lvl == hinst->level)//press down
+    {
+        val |= 0x01;
+    }
+    val &= 0x07;
+
+    switch(val)
+    {
+    case 0x00://LLL - key hold up
+        if (evt_set & QKEY_EVT_UP)
+        {
+            (hinst->hook)(evt_pin, QKEY_EVT_UP);
+        }
+        break;
+        
+    case 0x01://LLH - skip
+        break;
+    
+    case 0x02://LHL - pulse disturb
+        val = 0;
+        break;
+        
+    case 0x03://LHH - key press down
+        if (evt_set & QKEY_EVT_PUSH)
+        {
+            (hinst->hook)(evt_pin, QKEY_EVT_PUSH);
+        }
+        break;
+        
+    case 0x04://HLL - key pop up
+        if (evt_set & QKEY_EVT_POP)
+        {
+            (hinst->hook)(evt_pin, QKEY_EVT_POP);
+        }
+        break;
+    
+    case 0x05://HLH - pulse disturb
+        val = 0x07;
+        break;
+
+    case 0x06://HHL - skip
+        break;
+        
+    case 0x07://HHH - key hold down
+        if (evt_set & QKEY_EVT_DOWN)
+        {
+            (hinst->hook)(evt_pin, QKEY_EVT_DOWN);
+        }
+        break;
+        
+    default:
+        break;
+    }
+
+    hinst->waves[row][col] = val;
+}
+
+static void qkey_array_scan(void)
+{
+    if (qkey_array.pins == RT_NULL)
+    {
+        rt_thread_mdelay(2);
+        return;
+    }
+    
+    for(int col = 0; col < QKEY_ARRAY_COL_TOTAL; col++)
+    {
+        int col_pin = qkey_array.pins->col[col];
+        rt_pin_mode(col_pin, PIN_MODE_OUTPUT);
+        rt_pin_write(col_pin, qkey_array.scan_level ? PIN_HIGH : PIN_LOW);
+        rt_thread_mdelay(1);
+        
+        for (int row = 0; row < QKEY_ARRAY_ROW_TOTAL; row++)
+        {
+            qkey_array_pin_chk(&qkey_array, row, col);
+        }
+        
+        rt_pin_write(col_pin, qkey_array.scan_level ? PIN_LOW : PIN_HIGH);
+        rt_thread_mdelay(1);
+        
+        rt_pin_mode(col_pin, PIN_MODE_INPUT);
+    }
+}
+#endif
+
 static void qkey_thread_entry(void *params)
 {
-    qkey_datas_init();
-
     while(1)
     {
         qkey_scan();
+        #ifdef QKEY_USING_ARRAY
+        qkey_array_scan();
+        rt_thread_mdelay(QKEY_SCAN_PRIOD_MS - 2);
+        #else
         rt_thread_mdelay(QKEY_SCAN_PRIOD_MS);
+        #endif
     }
 }
 
@@ -172,8 +282,9 @@ static int qkey_init(void)
 {
     rt_thread_t tid = rt_thread_create(QKEY_THREAD_NAME, qkey_thread_entry, RT_NULL, 
                                         QKEY_THREAD_STACK_SIZE, QKEY_THREAD_PRIO, 20);
+    RT_ASSERT(tid != RT_NULL);
+    qkey_datas_init();
     rt_thread_startup(tid);
-    
     return(RT_EOK);
 }
 INIT_PREV_EXPORT(qkey_init);
@@ -192,7 +303,7 @@ int qkey_add(int pin, int level, int evt_set, qkey_evt_hook_t hook)
         LOG_E("key add fail. param evt_set is empty.");
         return(-RT_ERROR);
     }
-    if (hook == NULL)
+    if (hook == RT_NULL)
     {
         LOG_E("key add fail. param hook is NULL.");
         return(-RT_ERROR);
@@ -244,4 +355,47 @@ void qkey_remove(int pin)
     
     qkeys[idx].pin = -1;
 }
+
+#ifdef QKEY_USING_ARRAY
+int qkey_array_add(const qkey_array_pins_t *pins, int scan_level, int level, int evt_set, qkey_evt_hook_t hook)
+{
+    if (pins == RT_NULL)
+    {
+        LOG_E("key array add fail. param pins is NULL.");
+        return(-RT_ERROR);
+    }
+    if ((evt_set & 0x0F) == 0)
+    {
+        LOG_E("key add fail. param evt_set is empty.");
+        return(-RT_ERROR);
+    }
+    if (hook == RT_NULL)
+    {
+        LOG_E("key add fail. param hook is NULL.");
+        return(-RT_ERROR);
+    }
+    if (qkey_array.pins != RT_NULL)
+    {
+        LOG_E("key add fail. key array is working. please remove it first");
+        return(-RT_ERROR);
+    }
+
+    rt_enter_critical();
+
+    qkey_array.pins = pins;
+    qkey_array.scan_level = scan_level;
+    qkey_array.level = level;
+    qkey_array.evt_set = evt_set;
+    qkey_array.hook = hook;
+    
+    rt_exit_critical();
+    
+    return(RT_EOK);
+}
+
+void qkey_array_remove(void)
+{
+    qkey_array.pins = RT_NULL;
+}
+#endif
 

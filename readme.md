@@ -59,6 +59,19 @@ typedef void (*qkey_evt_hook_t)(int pin, qkey_evt_t evt);
 - 参数 ：pin--key使用的引脚号
 - 返回 ：无
 
+#### int qkey_array_add(const qkey_array_pins_t *pins, int scan_level, int level, int evt_set, qkey_evt_hook_t hook);
+- 功能 ：加按键阵列到驱动
+- 参数 ：pins--按键阵列的行列引脚数据
+- 参数 ：scan_level--列扫描电平, 注:键阵列是采用列扫描模式设计的
+- 参数 ：level--键按下后的电平
+- 参数 ：hook--key事件回调函数
+- 返回 ：0--成功，其它--错误
+
+#### void qkey_array_remove(void);
+- 功能 ：从驱动移除按键阵列
+- 参数 ：无
+- 返回 ：无
+
 ### 2.2测试功能
 
 #### 在启用测试功能情况下，可使用shell命令行测试按键功能。
@@ -66,6 +79,8 @@ typedef void (*qkey_evt_hook_t)(int pin, qkey_evt_t evt);
 - ##### `qkey` 列表帮助信息
 - ##### `qkey add pin lvl evt_set` 将按键加入到驱动，参数pin、lvl、evt_set分别为引脚号、按下电平、关心的事件集，如：`qkey add 16 0 3` 加按键，引脚为PB0，按下电平低，关心事件为按下、抬起。
 - ##### `qkey remove pin` 将按键从驱动中移除，参数pin为引脚号。
+- ##### `qkey add_array scan_lvl lvl evt_set` 将按键阵列加入到驱动，参数scan_lvl、lvl、evt_set分别为列扫描电平、键按下电平、关心的事件集，如：`qkey add_array 0 0 3` 加按键阵列，扫描电平低，键按下电平低，关心事件为按下、抬起。
+- ##### `qkey remove_array` 将按键阵列从驱动中移除。
 
 ### 2.3获取组件
 
@@ -84,6 +99,10 @@ typedef void (*qkey_evt_hook_t)(int pin, qkey_evt_t evt);
 | QKEY_THREAD_NAME 			| 按键驱动线程名称
 | QKEY_THREAD_STACK_SIZE 	| 按键驱动线程堆栈尺寸
 | QKEY_THREAD_PRIO 			| 按键驱动线程优先级
+| QKEY_USING_ARRAY 			| 使用按键阵列
+| QKEY_ARRAY_ROW_TOTAL 		| 按键阵列的行总数
+| QKEY_ARRAY_COL_TOTAL 		| 按键阵列的列总数
+| QKEY_ARRAY_PIN_FIRST 		| 按键阵列事件回调的第1个引脚号
 
 ## 3. 联系方式
 
