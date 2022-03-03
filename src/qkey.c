@@ -2,9 +2,10 @@
  * qkey.c
  *
  * Change Logs:
- * Date           Author        Notes
- * 2020-10-14     qiyongzhong   first version
+ * Date           Author            Notes
+ * 2020-10-14     qiyongzhong       first version
  * 2021-08-30     qiyongzhong       add key array
+ * 2022-03-02     qiyongzhong       add the pin initialization for qkey_array_add() and qkey_array_remove().
  */
 
 #include <qkey.h>
@@ -380,6 +381,11 @@ int qkey_array_add(const qkey_array_pins_t *pins, int scan_level, int level, int
         return(-RT_ERROR);
     }
 
+    for(int i=0; i<QKEY_ARRAY_ROW_TOTAL; i++)
+    {
+        qkey_pin_init(pins->row[i], level);
+    }
+
     rt_enter_critical();
 
     qkey_array.pins = pins;
@@ -395,7 +401,13 @@ int qkey_array_add(const qkey_array_pins_t *pins, int scan_level, int level, int
 
 void qkey_array_remove(void)
 {
+    const qkey_array_pins_t *pins = qkey_array.pins;
     qkey_array.pins = RT_NULL;
+    
+    for(int i=0; i<QKEY_ARRAY_ROW_TOTAL; i++)
+    {
+        qkey_pin_deinit(pins->row[i]);
+    }
 }
 #endif
 

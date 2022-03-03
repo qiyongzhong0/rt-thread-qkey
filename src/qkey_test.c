@@ -2,8 +2,8 @@
  * qkey_test.c
  *
  * Change Logs:
- * Date           Author        Notes
- * 2020-10-14     qiyongzhong   first version
+ * Date           Author            Notes
+ * 2020-10-14     qiyongzhong       first version
  * 2021-08-30     qiyongzhong       add key array
  */
 
