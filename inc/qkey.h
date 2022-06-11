@@ -15,6 +15,7 @@
 //#define QKEY_USING_TEST
 //#define QKEY_USING_PULL
 //#define QKEY_USING_ARRAY
+//#define QKEY_USING_SAMPLE
 
 #ifndef QKEY_TOTAL
 #define QKEY_TOTAL              5       //support key maximum total
