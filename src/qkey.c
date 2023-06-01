@@ -6,6 +6,7 @@
  * 2020-10-14     qiyongzhong       first version
  * 2021-08-30     qiyongzhong       add key array
  * 2022-03-02     qiyongzhong       add the pin initialization for qkey_array_add() and qkey_array_remove().
+ * 2023-06-01     qiyongzhong       optimize scan cycle management
  */
 
 #include <qkey.h>
@@ -241,7 +242,6 @@ static void qkey_array_scan(void)
 {
     if (qkey_array.pins == RT_NULL)
     {
-        rt_thread_mdelay(2);
         return;
     }
     
@@ -250,7 +250,7 @@ static void qkey_array_scan(void)
         int col_pin = qkey_array.pins->col[col];
         rt_pin_mode(col_pin, PIN_MODE_OUTPUT);
         rt_pin_write(col_pin, qkey_array.scan_level ? PIN_HIGH : PIN_LOW);
-        rt_thread_mdelay(1);
+        rt_thread_delay(1);
         
         for (int row = 0; row < QKEY_ARRAY_ROW_TOTAL; row++)
         {
@@ -258,7 +258,7 @@ static void qkey_array_scan(void)
         }
         
         rt_pin_write(col_pin, qkey_array.scan_level ? PIN_LOW : PIN_HIGH);
-        rt_thread_mdelay(1);
+        rt_thread_delay(1);
         
         rt_pin_mode(col_pin, PIN_MODE_INPUT);
     }
@@ -269,13 +269,19 @@ static void qkey_thread_entry(void *params)
 {
     while(1)
     {
+        rt_tick_t ticks = rt_tick_get();
+        
         qkey_scan();
         #ifdef QKEY_USING_ARRAY
         qkey_array_scan();
-        rt_thread_mdelay(QKEY_SCAN_PRIOD_MS - 2);
-        #else
-        rt_thread_mdelay(QKEY_SCAN_PRIOD_MS);
         #endif
+
+        ticks += (QKEY_SCAN_PRIOD_MS * RT_TICK_PER_SECOND / 1000);
+        int ticks_left = ticks - rt_tick_get();
+        if (ticks_left > 0)
+        {
+            rt_thread_delay(ticks_left);
+        }
     }
 }
 
