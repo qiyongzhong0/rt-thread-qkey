@@ -107,5 +107,6 @@ typedef void (*qkey_evt_hook_t)(int pin, qkey_evt_t evt);
 ## 3. 联系方式
 
 * 维护：qiyongzhong
+* 主页：https://github.com/qiyongzhong0/rt-thread-qkey
 * 主页：https://gitee.com/qiyongzhong0/rt-thread-qkey
 * 邮箱：917768104@qq.com
